@@ -1,380 +1,386 @@
-import React, { useState } from "react";
-import "./Header.css";
-import logo from "./../../assets/logo.svg";
-import { Link } from "react-router-dom";
-import { makeStyles } from "@material-ui/core/styles";
-import { Button, Tabs, Tab, TextField, Box } from "@material-ui/core";
-import Modal from "react-modal";
+/**
+This component displays the header that is common for all screens in the top side of the page layout
+ */
 
-const useStyles = makeStyles(theme => ({
-  loginButton: {
-    marginLeft: theme.spacing(1),
-  },
-}));
+import React, { useState } from 'react';
 
-const modalStyles = {
-  content: {
-    inset: "50% auto auto 50%",
-    transform: "translate(-50%,-50%)",
-    maxWidth: "300px",
-  },
+import './Header.css';
+import Button from '@material-ui/core/Button';
+import logo from '../../assets/logo.svg';
+import Modal from 'react-modal';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import Typography from '@material-ui/core/Typography';
+import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
+import Input from '@material-ui/core/Input';
+import PropTypes from 'prop-types';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import { Link, useHistory } from 'react-router-dom';
+import axios from 'axios';
+
+
+const customStyles = {
+    content: {
+        top: '50%',
+        left: '50%',
+        right: 'auto',
+        bottom: 'auto',
+        marginRight: '-50%',
+        transform: 'translate(-50%, -50%)'
+    }
 };
 
-const Header = ({ id, showBookNowButton }) => {
-  Modal.setAppElement("#root");
-  const classes = useStyles();
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
-  const [modalIsOpen, setIsOpen] = useState(false);
-  const [value, setValue] = useState(0);
-  const [usernameObj, setUserName] = useState({
-    username: "",
-    error: false,
-    helperText: "",
-  });
-  const [loginPasswordObj, setLoginPassword] = useState({
-    loginPassword: "",
-    error: false,
-    helperText: "",
-  });
-  const [firstNameObj, setFirstName] = useState({
-    firstName: "",
-    error: false,
-    helperText: "",
-  });
-  const [lastNameObj, setLastName] = useState({
-    lastName: "",
-    error: false,
-    helperText: "",
-  });
-  const [emailObj, setEmail] = useState({
-    email: "",
-    error: false,
-    helperText: "",
-  });
-  const [registerPasswordObj, setRegisterPassword] = useState({
-    registerPassword: "",
-    error: false,
-    helperText: "",
-  });
-  const [contactObj, setContact] = useState({
-    contact: "",
-    error: false,
-    helperText: "",
-  });
-  const [registration, setRegistration] = useState(false);
+const TabContainer = function (props) {
+    return (
+        <Typography component="div" style={{ padding: 0, textAlign: 'center' }}>
+            {props.children}
+        </Typography>
+    )
+}
 
-  const handleInputChange = (e, stateObj, label) => {
-    const currentObj = { ...stateObj };
-    currentObj[label] = e.target.value;
-    if (currentObj[label] === "") {
-      currentObj["error"] = true;
-      currentObj["helperText"] = "required";
-    }
-    if (currentObj.error === true && currentObj[label] !== "") {
-      currentObj["error"] = false;
-      currentObj["helperText"] = "";
-    }
-    switch (label) {
-      case "username":
-        setUserName(currentObj);
-        break;
-      case "loginPassword":
-        setLoginPassword(currentObj);
-        break;
-      case "firstName":
-        setFirstName(currentObj);
-        break;
-      case "lastName":
-        setLastName(currentObj);
-        break;
-      case "email":
-        setEmail(currentObj);
-        break;
-      case "registerPassword":
-        setRegisterPassword(currentObj);
-        break;
-      case "contact":
-        setContact(currentObj);
-        break;
-      default:
-        break;
-    }
-  };
+TabContainer.propTypes = {
+    children: PropTypes.node.isRequired
+}
 
-  const handleLogin = e => {
-    e.preventDefault();
-    if (usernameObj.error || loginPasswordObj.error) {
-      return;
-    }
-    if (!usernameObj.error && !loginPasswordObj.error) {
-      const userPassword = localStorage.getItem(usernameObj.username);
-      if (userPassword === null) return;
-      if (userPassword === loginPasswordObj.loginPassword) {
-        setIsLoggedIn(true);
-        closeModal();
-      }
-    }
-  };
+const Header = (props) => {
 
-  const handleRegister = e => {
-    e.preventDefault();
-    if (
-      firstNameObj.error ||
-      lastNameObj.error ||
-      emailObj.error ||
-      contactObj.error ||
-      registerPasswordObj.error
-    ) {
-      return;
-    }
-    if (
-      !firstNameObj.error &&
-      !lastNameObj.error &&
-      !emailObj.error &&
-      !contactObj.error &&
-      !registerPasswordObj.error
-    ) {
-      localStorage.setItem(
-        firstNameObj.firstName,
-        registerPasswordObj.registerPassword
-      );
-      setRegistration(true);
-    }
-  };
-  const handleChange = (event, newValue) => {
-    if (value === 0) {
-      const userName = {
-        username: "",
-        error: false,
-        helperText: "",
-      };
-      const loginPassword = {
-        loginPassword: "",
-        error: false,
-        helperText: "",
-      };
-      setUserName(userName);
-      setLoginPassword(loginPassword);
-    } else {
-      const firstName = {
-        firstName: "",
-        error: false,
-        helperText: "",
-      };
-      const lastName = {
-        lastName: "",
-        error: false,
-        helperText: "",
-      };
-      const email = {
-        email: "",
-        error: false,
-        helperText: "",
-      };
-      const registrationPassword = {
-        registerPassword: "",
-        error: false,
-        helperText: "",
-      };
-      const contact = {
-        contact: "",
-        error: false,
-        helperText: "",
-      };
-      setFirstName(firstName);
-      setLastName(lastName);
-      setEmail(email);
-      setRegisterPassword(registrationPassword);
-      setContact(contact);
-      setRegistration(false);
-    }
-    setValue(newValue);
-  };
+    const [modalIsOpen, setModalIsOpen] = useState(false);
+    const [value, setValue] = useState(0);
+    const [username, setUsername] = useState("");
+    const [usernameRequired, setUsernameRequired] = useState("dispNone");
+    const [loginPasswordRequired, setLoginPasswordRequired] = useState("dispNone");
+    const [loginPassword, setloginPassword] = useState("");
+    const [firstnameRequired, setFirstnameRequired] = useState("dispNone");
+    const [firstname, setFirstname] = useState("");
+    const [lastnameRequired, setLastnameRequired] = useState("dispNone");
+    const [lastname, setLastname] = useState("");
+    const [emailRequired, setEmailRequired] = useState("dispNone");
+    const [email, setEmail] = useState("");
+    const [registerPasswordRequired, setRegisterPasswordRequired] = useState("dispNone");
+    const [registerPassword, setRegisterPassword] = useState("");
+    const [contactRequired, setContactRequired] = useState("dispNone");
+    const [contact, setContact] = useState("");
+    const [registrationSuccess, setRegistrationSuccess] = useState(false);
+    const [loggedIn, setLoggedIn] = useState(sessionStorage.getItem("access-token") == null ? false : true);
+    const [bookShowRequested, setBookShowRequested] = useState(false);
 
-  const openModal = () => setIsOpen(true);
-  const closeModal = () => {
-    const userName = {
-      username: "",
-      error: false,
-      helperText: "",
-    };
-    const loginPassword = {
-      loginPassword: "",
-      error: false,
-      helperText: "",
-    };
-    const firstName = {
-      firstName: "",
-      error: false,
-      helperText: "",
-    };
-    const lastName = {
-      lastName: "",
-      error: false,
-      helperText: "",
-    };
-    const email = {
-      email: "",
-      error: false,
-      helperText: "",
-    };
-    const registrationPassword = {
-      registerPassword: "",
-      error: false,
-      helperText: "",
-    };
-    const contact = {
-      contact: "",
-      error: false,
-      helperText: "",
-    };
-    setUserName(userName);
-    setLoginPassword(loginPassword);
-    setFirstName(firstName);
-    setLastName(lastName);
-    setEmail(email);
-    setRegisterPassword(registrationPassword);
-    setContact(contact);
-    setIsOpen(false);
-  };
 
-  return (
-    <div className="header">
-      <img src={logo} className="logo" alt="movies-app-logo" />
-      <div>
-        {showBookNowButton && !isLoggedIn && (
-          <Button variant="contained" color="primary">
-            Book Show
-          </Button>
-        )}
-        {showBookNowButton && isLoggedIn && (
-          <Link to={`/bookshow/${id}`}>
-            <Button variant="contained" color="primary">
-              Book Show
-            </Button>
-          </Link>
-        )}
-        {isLoggedIn ? (
-          <Button
-            className={classes.loginButton}
-            variant="contained"
-            onClick={() => setIsLoggedIn(false)}>
-            Logout
-          </Button>
-        ) : (
-          <Button
-            className={classes.loginButton}
-            variant="contained"
-            onClick={openModal}>
-            Login
-          </Button>
-        )}
-      </div>
-      <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={closeModal}
-        style={modalStyles}>
-        <Tabs value={value} onChange={handleChange}>
-          <Tab label="Login" />
-          <Tab label="Register" />
-        </Tabs>
-        {value === 0 && (
-          <form
-            style={{ textAlign: "center", padding: "1rem" }}
-            onSubmit={handleLogin}>
-            <TextField
-              type="text"
-              required
-              label="Username"
-              helperText={usernameObj.helperText}
-              value={usernameObj.username}
-              onChange={e => handleInputChange(e, usernameObj, "username")}
-              error={usernameObj.error}
-            />
-            <TextField
-              type="password"
-              required
-              label="Password"
-              helperText={loginPasswordObj.helperText}
-              value={loginPasswordObj.loginPassword}
-              onChange={e =>
-                handleInputChange(e, loginPasswordObj, "loginPassword")
-              }
-              error={loginPasswordObj.error}
-            />
-            <Box style={{ marginTop: "1.5rem" }}>
-              <Button variant="contained" color="primary" type="submit">
-                Login
-              </Button>
-            </Box>
-          </form>
-        )}
-        {value === 1 && (
-          <form
-            style={{ textAlign: "center", padding: "1rem" }}
-            onSubmit={handleRegister}>
-            <TextField
-              type="text"
-              required
-              label="FirstName"
-              helperText={firstNameObj.helperText}
-              value={firstNameObj.firstName}
-              onChange={e => handleInputChange(e, firstNameObj, "firstName")}
-              error={firstNameObj.error}
-            />
-            <TextField
-              type="text"
-              required
-              label="LastName"
-              helperText={lastNameObj.helperText}
-              value={lastNameObj.lastName}
-              onChange={e => handleInputChange(e, lastNameObj, "lastName")}
-              error={lastNameObj.error}
-            />
-            <TextField
-              type="email"
-              required
-              label="Email"
-              helperText={emailObj.helperText}
-              value={emailObj.email}
-              onChange={e => handleInputChange(e, emailObj, "email")}
-              error={emailObj.error}
-            />
-            <TextField
-              type="password"
-              required
-              label="Password"
-              helperText={registerPasswordObj.helperText}
-              value={registerPasswordObj.registerPassword}
-              onChange={e =>
-                handleInputChange(e, registerPasswordObj, "registerPassword")
-              }
-              error={registerPasswordObj.error}
-            />
-            <TextField
-              type="password"
-              required
-              label="Contact"
-              helperText={contactObj.helperText}
-              value={contactObj.contact}
-              onChange={e => handleInputChange(e, contactObj, "contact")}
-              error={contactObj.error}
-            />
-            <Box style={{ marginTop: "1.5rem" }}>
-              {registration && (
-                <div style={{ margin: "1rem 0" }}>
-                  Registration Successful. Please Login!
-                </div>
-              )}
-              <Button variant="contained" color="primary" type="submit">
-                Register
-              </Button>
-            </Box>
-          </form>
-        )}
-      </Modal>
-    </div>
-  );
-};
+    const history = useHistory();
+
+    /** Handler  to set the state of any modal open to track the status */
+    const openModalHandler = () => {
+        setModalIsOpen(true);
+    }
+
+    /** Handler  to set the state of any modal closed to track the status */
+    const closeModalHandler = () => {
+        setUsername('');
+        setloginPassword('');
+        setModalIsOpen(false);
+    }
+
+    /** Handler  to set the current tab */
+    const tabChangeHandler = (event, value) => {
+        setValue(value);
+    }
+
+    /** Handler  to process the login action */
+    const loginClickHandler = () => {
+        username === "" ? setUsernameRequired("dispBlock") : setUsernameRequired("dispNone");
+        loginPassword === "" ? setLoginPasswordRequired("dispBlock") : setLoginPasswordRequired("dispNone");
+
+        if (username && loginPassword) {
+
+            /** Build the header with the basic authentication token */
+            const headers = {
+                "Authorization": `Basic ${window.btoa(username + ":" + loginPassword)}`,
+                'Content-Type': 'application/json',
+                'Cache-Control': "no-cache"
+            }
+
+            /** use Axios post the sendthe header to the login API */
+            axios.post(props.baseUrl + "auth/login", {}, {
+                headers
+            }).then(res => {
+                sessionStorage.setItem("uuid", res.data.id);
+                sessionStorage.setItem("access-token", res.headers['access-token']);
+
+                setLoggedIn(true)
+
+                // Automatically close the login modal after 2 seconds
+                setTimeout(() => {
+                    closeModalHandler();
+                }, 2000);
+
+                /** If the user is shown the login modal because he clicked the book show 
+                 * button without logging in, then take the user to the book show page
+                 */
+                if (bookShowRequested) {
+                    history.push('/bookshow/' + props.id);
+                    setBookShowRequested(false);
+                }
+            }).catch(
+                function (error) {
+                    if (error.response) {
+                        // Request made and server responded
+                        let message = error.response.data.message;
+                        if (message === 'Password match failed' ||
+                            message === 'Username does not exist' ||
+                            message === 'User account is LOCKED') {
+                            alert(error.response.data.message);
+                        } else {
+                            console.log(error.message);
+                        }
+
+                    } else if (error.request) {
+                        // The request was made but no response was received
+                        alert(error.request);
+                    } else {
+                        // Something happened in setting up the request that triggered an Error
+                        alert('Error', error.message);
+                    }
+                }
+            );
+        } else {
+            alert('Please enter valid credentials');
+        }
+
+    }
+
+    /** The following two handlers are for storing the inputs of username and password by the user */
+    const inputUsernameChangeHandler = (e) => {
+        setUsername(e.target.value);
+    }
+
+    const inputLoginPasswordChangeHandler = (e) => {
+        setloginPassword(e.target.value)
+    }
+
+    /** Registration processing handler */
+    const registerClickHandler = () => {
+        firstname === "" ? setFirstnameRequired("dispBlock") : setFirstnameRequired("dispNone");
+        lastname === "" ? setLastnameRequired("dispBlock") : setLastnameRequired("dispNone");
+        email === "" ? setEmailRequired("dispBlock") : setEmailRequired("dispNone");
+        registerPassword === "" ? setRegisterPasswordRequired("dispBlock") : setRegisterPasswordRequired("dispNone");
+        contact === "" ? setContactRequired("dispBlock") : setContactRequired("dispNone");
+
+        /** Check for all data */
+        if (firstname && lastname && email && registerPassword && contact) {
+            let dataSignup = {
+                "email_address": email,
+                "first_name": firstname,
+                "last_name": lastname,
+                "mobile_number": contact,
+                "password": registerPassword
+            };
+
+            axios.post(props.baseUrl + "signup", dataSignup).then(res => {
+                setRegistrationSuccess(true);
+
+                // Automatically switch to the login tab after 2 seconds and reset all the values
+                setTimeout(() => {
+                    setValue(0);
+                    setFirstname('');
+                    setLastname('');
+                    setEmail('');
+                    setContact('');
+                    setRegisterPassword('');
+                    setRegistrationSuccess(false);
+                }, 2000);
+            });
+        } else {
+            alert('Please fill all mandatory fields');
+            setRegistrationSuccess(false);
+        }
+    }
+
+    /** The following five handlers are for storing the inputs by the user for registration details */
+    const inputFirstNameChangeHandler = (e) => {
+        setFirstname(e.target.value);
+    }
+
+    const inputLastNameChangeHandler = (e) => {
+        setLastname(e.target.value);
+    }
+
+    const inputEmailChangeHandler = (e) => {
+        setEmail(e.target.value)
+    }
+
+    const inputRegisterPasswordChangeHandler = (e) => {
+        setRegisterPassword(e.target.value);
+    }
+
+    const inputContactChangeHandler = (e) => {
+        setContact(e.target.value)
+    }
+
+    /** Handles the logout button click event */
+    const logoutHandler = (e) => {
+        const headers = {
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache",
+            Authorization: "Bearer " + sessionStorage.getItem("access-token"),
+        }
+        axios.post(props.baseUrl + "auth/logout", {}, {
+            headers
+        }).then(res => {
+
+            sessionStorage.removeItem("uuid");
+            sessionStorage.removeItem("access-token");
+            setLoggedIn(false);
+        });
+    }
+
+    const guestBookShowHandler = (e) => {
+        openModalHandler();
+        setBookShowRequested(true);
+    }
+
+    /** return the div with the header, login/logout button, BookShow button and the Login/Register Modal */
+    return (
+        <div>
+            {/** The App header with login/logout and book show buttons*/}
+            <header className="app-header">
+                <img src={logo} className="app-logo" alt="Movies App Logo" />
+                {!loggedIn ?
+                    <div className="login-button">
+                        <Button variant="contained" color="default" onClick={openModalHandler}>
+                            Login
+                        </Button>
+                    </div>
+                    :
+                    <div className="login-button">
+                        <Button variant="contained" color="default" onClick={logoutHandler}>
+                            Logout
+                        </Button>
+                    </div>
+                }
+
+                {props.showBookShowButton === "true" && !loggedIn
+                    ? <div className="bookshow-button">
+                        <Button variant="contained" color="primary" onClick={guestBookShowHandler}>
+                            Book Show
+                        </Button>
+                    </div>
+                    : ""
+                }
+
+                {props.showBookShowButton === "true" && loggedIn
+                    ? <div className="bookshow-button">
+                        <Link to={"/bookshow/" + props.id}>
+                            <Button variant="contained" color="primary">
+                                Book Show
+                            </Button>
+                        </Link>
+                    </div>
+                    : ""
+                }
+
+            </header>
+
+            {/** The Login/Register Modal*/}
+            <Modal
+                ariaHideApp={false}
+                isOpen={modalIsOpen}
+                contentLabel="Login"
+                onRequestClose={closeModalHandler}
+                style={customStyles}
+            >
+                <Tabs className="tabs" value={value} onChange={tabChangeHandler}>
+                    <Tab label="Login" />
+                    <Tab label="Register" />
+                </Tabs>
+
+                {value === 0 &&
+                    <TabContainer>
+                        <FormControl required>
+                            <InputLabel htmlFor="username">Username</InputLabel>
+                            <Input id="username" type="text" username={username} onChange={inputUsernameChangeHandler} />
+                            <FormHelperText className={usernameRequired}>
+                                <span className="red">required</span>
+                            </FormHelperText>
+                        </FormControl>
+                        <br /><br />
+                        <FormControl required>
+                            <InputLabel htmlFor="loginPassword">Password</InputLabel>
+                            <Input id="loginPassword" type="password" loginpassword={loginPassword} onChange={inputLoginPasswordChangeHandler} />
+                            <FormHelperText className={loginPasswordRequired}>
+                                <span className="red">required</span>
+                            </FormHelperText>
+                        </FormControl>
+                        <br /><br />
+                        {loggedIn === true &&
+                            <FormControl>
+                                <span className="successText">
+                                    Login Successful!
+                                </span>
+                            </FormControl>
+                        }
+                        <br />
+                        <Button variant="contained" color="primary" onClick={loginClickHandler}>LOGIN</Button>
+                    </TabContainer>
+                }
+
+                {value === 1 &&
+                    <TabContainer>
+                        <FormControl required>
+                            <InputLabel htmlFor="firstname">First Name</InputLabel>
+                            <Input id="firstname" type="text" firstname={firstname} onChange={inputFirstNameChangeHandler} />
+                            <FormHelperText className={firstnameRequired}>
+                                <span className="red">required</span>
+                            </FormHelperText>
+                        </FormControl>
+                        <br /><br />
+                        <FormControl required>
+                            <InputLabel htmlFor="lastname">Last Name</InputLabel>
+                            <Input id="lastname" type="text" lastname={lastname} onChange={inputLastNameChangeHandler} />
+                            <FormHelperText className={lastnameRequired}>
+                                <span className="red">required</span>
+                            </FormHelperText>
+                        </FormControl>
+                        <br /><br />
+                        <FormControl required>
+                            <InputLabel htmlFor="email">Email</InputLabel>
+                            <Input id="email" type="email" email={email} onChange={inputEmailChangeHandler} />
+                            <FormHelperText className={emailRequired}>
+                                <span className="red">required</span>
+                            </FormHelperText>
+                        </FormControl>
+                        <br /><br />
+                        <FormControl required>
+                            <InputLabel htmlFor="registerPassword">Password</InputLabel>
+                            <Input id="registerPassword" type="password" registerpassword={registerPassword} onChange={inputRegisterPasswordChangeHandler} />
+                            <FormHelperText className={registerPasswordRequired}>
+                                <span className="red">required</span>
+                            </FormHelperText>
+                        </FormControl>
+                        <br /><br />
+                        <FormControl required>
+                            <InputLabel htmlFor="contact">Contact No.</InputLabel>
+                            <Input id="contact" type="tel" contact={contact} onChange={inputContactChangeHandler} />
+                            <FormHelperText className={contactRequired}>
+                                <span className="red">required</span>
+                            </FormHelperText>
+                        </FormControl>
+                        <br /><br />
+                        {registrationSuccess === true &&
+                            <FormControl>
+                                <span className="successText">
+                                    Registration Successful. Please Login!
+                                </span>
+                            </FormControl>
+                        }
+                        <br />
+                        <Button variant="contained" color="primary" onClick={registerClickHandler}>REGISTER</Button>
+                    </TabContainer>
+                }
+            </Modal>
+        </div>
+    )
+}
+
+
 
 export default Header;
